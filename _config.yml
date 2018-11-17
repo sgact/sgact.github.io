@@ -1,9 +1,9 @@
 # Site settings
-title: BE搞Android
-SEOTitle: BE搞Android
+title: Quel'Thalas
+SEOTitle: Quel'Thalas 永恒的太阳指引着我们
 header-img: img/post-bg-desk.jpg
 email: sgact.dev@gmail.com
-description: "Anu belore da'lana 永恒的太阳指引着我们"
+description: "Anu belore da'lana "
 keyword: "Android应用开发与安全"
 url: "http://sgact.github.io"          # your host, for absolute URL
 baseurl: ""      # for example, '/blog' if your blog hosted on 'host/blog'

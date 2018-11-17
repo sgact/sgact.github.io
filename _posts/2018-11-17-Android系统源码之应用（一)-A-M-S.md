@@ -2,7 +2,7 @@
 layout:     post
 title:      Android系统源码之应用 （一）AMS
 date:       2018-11-17
-author:     BE搞Android
+author:     sg
 catalog: true
 tags:
     - Android

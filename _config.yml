@@ -1,9 +1,9 @@
 # Site settings
-title: sgact..
-SEOTitle: sgact's blog
+title: BE搞Android
+SEOTitle: BE搞Android
 header-img: img/post-bg-desk.jpg
 email: sgact.dev@gmail.com
-description: "Anu belore da'lana"
+description: "Anu belore da'lana 永恒的太阳指引着我们"
 keyword: "Android应用开发与安全"
 url: "http://sgact.github.io"          # your host, for absolute URL
 baseurl: ""      # for example, '/blog' if your blog hosted on 'host/blog'
@@ -74,11 +74,11 @@ gitalk:
 
 # Analytics settings
 # Baidu Analytics
-#ba_track_id: b50bf2b12b5338a1845e33832976fd68
+ba_track_id: c2f10f19ee6693d86a21249b8c83b097
 
 # Google Analytics
-ga_track_id: 'UA-90855596-1'            # Format: UA-xxxxxx-xx
-ga_domain: auto              # 默认的是 auto, 这里我是自定义了的域名，你如果没有自己的域名，需要改成auto
+#ga_track_id: 'UA-90855596-1'            # Format: UA-xxxxxx-xx
+#ga_domain: auto              # 默认的是 auto, 这里我是自定义了的域名，你如果没有自己的域名，需要改成auto
 
 
 

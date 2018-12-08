@@ -20,7 +20,7 @@ tags:
 ### 2.Activity的跳转流程。
 
 目前（18-10-27）为止，据我所知网上并没有一个通用的解决办法，那我就打算从源码中寻找解决方案，关注Activity跳转部分的代码，这里可以参考源码分析书籍和博客中的流程图来帮助理解。我把这部分的流程总结如下：
-![Activity跳转流程](leanote://file/getImage?fileId=5bd5a384e723800cbd000000)
+![Activity跳转流程](https://ws3.sinaimg.cn/large/006tNbRwly1fxz3oxd3qmj30rs0w1dht.jpg)
 我对这个流程进行了一些精简，突出跳转的流程。现在看起来就比较简单，就不做过多的分析了。通过阅读这个流程图，并结合已有的知识我们可以发现有一些规律：
 
 - 一次跨应用Activity跳转涉及到三个进程，分别是应用A、 AMS、 B。A与B和AMS交互是C/S型交互，AMS扮演服务端。
@@ -36,7 +36,7 @@ tags:
 2. 应用B作为C/S的客户端，可以向AMS请求哪些信息
 首先我们看第一个方案。
 应用B是我们自己的应用，如何获取他的参数呢？这里有一个最简单的方法推荐给大家，就不需要跟源码了。就是在应用B的Activity上打一个断点，然后我们使用测试的应用A发送跳转Intent。之后会发现程序走到了断点，这里的断点设在了onResume上。默认在Android Studio的左下角有一个调用栈窗口。此时，他看起来是这样的：
-![Activity调用栈](leanote://file/getImage?fileId=5bd5a746e723800cbd000001)
+![Activity调用栈](https://ws4.sinaimg.cn/large/006tNbRwly1fxz3pmnkddj30ga08gq6j.jpg)
 这时可以点击任意一行记录，然后再右侧的窗口上输入变量名来获取他们当前的值。这里的每一行都由三部分组成，即方法行，类名，包名。然后我们从下向上的看，寻找有用的信息，这时我们看到了handleLaunchActivity这个函数，他的第一个参数我们看它的各种成员变量，发现有一个成员变量叫做referrer,正是应用A的包名，然后我们回到源码，跟踪这个字段的去向，最终发现他最终赋值给了Activity的mReferrer成员变量。那么解决方案就很简单了，我们只需要在B应用的Activity上使用反射获取这个字段就行了。
 
 ```java

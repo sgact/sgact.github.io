@@ -39,6 +39,12 @@ tags:
 ![Activity调用栈](leanote://file/getImage?fileId=5bd5a746e723800cbd000001)
 这时可以点击任意一行记录，然后再右侧的窗口上输入变量名来获取他们当前的值。这里的每一行都由三部分组成，即方法行，类名，包名。然后我们从下向上的看，寻找有用的信息，这时我们看到了handleLaunchActivity这个函数，他的第一个参数我们看它的各种成员变量，发现有一个成员变量叫做referrer,正是应用A的包名，然后我们回到源码，跟踪这个字段的去向，最终发现他最终赋值给了Activity的mReferrer成员变量。那么解决方案就很简单了，我们只需要在B应用的Activity上使用反射获取这个字段就行了。
 
+```java
+efererField = Activity.class.getDeclaredField("mReferrer");
+refererField.setAccessible(true);
+referer = ((String) refererField.get(openingActivity));
+```
+
 ### 4.如何获取调用者？解决方案二
 
 我们先来看下可行性。
@@ -73,6 +79,78 @@ tags:
 ```
 ActivityManagerNative也是一个实现了IActivityManager的抽象类，它包裹了ActivityManagerProxy,真正的远程客户端还是ActivityManagerProxy,然而ActivityManagerNative类是一个单例类，这意味着我们只需要这个类的类名就可以方便的使用反射来拿到他的实例。下面是代码
 ```java
-//todo
+Class<?> activityManagerNativeClass = Class.forName("android.app.ActivityManagerNative");
+Field fieldMToken = Activity.class.getDeclaredField("mToken");
+fieldMToken.setAccessible(true);
+IBinder mActivityToken = (IBinder) fieldMToken.get(openingActivity);
+Method methodGetLaunchedFromPackage = activityManagerNativeClass.getMethod("getLaunchedFromUid", IBinder.class);
+Method methodGetDefault = activityManagerNativeClass.getMethod("getDefault", new Class[0]);
+methodGetDefault.setAccessible(true);
+Object refererObj = methodGetLaunchedFromPackage.invoke(methodGetDefault.invoke(null, null) , mActivityToken);
+PackageManager pm = openingActivity.getPackageManager();
+referer =  pm.getNameForUid((Integer) refererObj);
 ```
-在测试中发现低版本的源码中没有getLaunchedFromPackage这个方法，所以上面使用了getLaunchedFromUid和PackageManager来曲线救国，以覆盖更多的版本。
+在测试中发现低版本的源码中没有getLaunchedFromPackage这个方法，所以上面使用了getLaunchedFromUid和PackageManager来曲线救国，以覆盖更多的版本。在实际的应用中，部分国产系统可能是对rom做了修改，在反射时候会报错，注意兼容性。
+
+### 5.如何绕过调用者的检测
+
+额，这一点不知道当讲不当讲，感觉有种为虎作伥的感觉。
+上面的分析中，我们都是以本应用的视角来分析系统的源码，现在我们要以调用者的视角来进行分析。首先当然要分析的是startActivity,我们这里省去一些没什么卵用的跳转，直接从Instrumentation这个类进行分析，这是一个相当重要的类。
+
+```java
+    public ActivityResult execStartActivity(
+        Context who, IBinder contextThread, IBinder token, String target,
+        Intent intent, int requestCode, Bundle options) {
+        IApplicationThread whoThread = (IApplicationThread) contextThread;
+        if (mActivityMonitors != null) {
+            synchronized (mSync) {
+                final int N = mActivityMonitors.size();
+                for (int i=0; i<N; i++) {
+                    final ActivityMonitor am = mActivityMonitors.get(i);
+                    if (am.match(who, null, intent)) {
+                        am.mHits++;
+                        if (am.isBlocking()) {
+                            return requestCode >= 0 ? am.getResult() : null;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        try {
+            intent.migrateExtraStreamToClipData();
+            intent.prepareToLeaveProcess();
+            int result = ActivityManagerNative.getDefault()
+                .startActivity(whoThread, who.getBasePackageName(), intent,
+                        intent.resolveTypeIfNeeded(who.getContentResolver()),
+                        token, target, requestCode, 0, null, options);
+            checkStartActivityResult(result, intent);
+        } catch (RemoteException e) {
+            throw new RuntimeException("Failure from system", e);
+        }
+        return null;
+    }
+```
+发现了熟悉的ActivityManagerNative,调用了startActivity方法，看一下方法的原型
+
+```java
+public int startActivity(IApplicationThread caller, String callingPackage, Intent intent,
+        String resolvedType, IBinder resultTo, String resultWho, int requestCode, int flags,
+        ProfilerInfo profilerInfo, Bundle options) throws RemoteException;
+```
+
+显然这里我们应该关注的是第二个参数，跟踪一下他是怎么来的。发现他来自ContextWrapper
+类中的Context mBase成员变量中的String mBasePackageName成员变量。因此我们可以这样修改它的值
+
+```java
+Field field = ContextWrapper.class.getDeclaredField("mBase");
+field.setAccessible(true);
+Object object = field.get(this);
+Field f = object.getClass().getDeclaredField("mBasePackageName");
+f.setAccessible(true);
+f.set(object, "fakeRefer");
+```
+
+测试通过。
+
+

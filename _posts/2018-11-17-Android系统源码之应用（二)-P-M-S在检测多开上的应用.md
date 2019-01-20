@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      Android系统源码之应用 （二）PMS
+title:      Android系统源码之应用 （二）PMS在检测多开上的应用
 date:       2018-11-17
 author:     sg
 catalog: true
@@ -33,8 +33,8 @@ Android中的用户可以理解为应用的ID,每个应用对应一个用户。A
             in VerificationParams verificationParams,
             in String packageAbiOverride,
             int userId);
-    ```
-    
+```
+
 来重新安装一遍应用。因此我们需要分析下Apk安装的过程。
 ### 4.Apk安装流程
 有了前面文章的经验，我们知道借助Android命名规范来查看源码效率是十分高的，因此我们直接定位到IPackageManger这个文件。
@@ -87,8 +87,10 @@ public boolean isMultiOpen(){  
     //这里可以视实际情况加一些限制  
     return list.size() > 1;  
 } 
-```java
+​```java
 	
 这样多开就无法逃脱我们的法眼了。
 
 
+
+```

@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      Android系统源码之应用 （一）AMS
+title:      Android系统源码之应用 （一）AMS在获取ActivityCaller上的应用
 date:       2018-11-17
 author:     sg
 catalog: true

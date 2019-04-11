@@ -1,14 +1,13 @@
 ---
 layout:     post
 title:      Android 系统源码之应用(四) 主动探测 卡顿与ANR
-date:       2019-03-24
+date:       2019-02-24
 author:     sg
 catalog: true
 tags:
     - Android
     - 源码
----、
-
+---
 
 ### Android 系统源码之应用(四) 主动探测 卡顿与ANR
 
